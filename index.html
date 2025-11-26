@@ -1,4 +1,519 @@
-<form onSubmit={(e) => e.preventDefault()}>
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Lucide React Icons (インライン実装)
+    const ChevronRight = ({ className, style }) => (
+        <svg className={className} style={style} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    );
+
+    const Coffee = ({ className }) => (
+        <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="1" x2="6" y2="4"></line>
+            <line x1="10" y1="1" x2="10" y2="4"></line>
+            <line x1="14" y1="1" x2="14" y2="4"></line>
+        </svg>
+    );
+
+    const BarChart3 = ({ className }) => (
+        <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 17V9"></path>
+            <path d="M13 17V5"></path>
+            <path d="M8 17v-3"></path>
+        </svg>
+    );
+
+    const Download = ({ className }) => (
+        <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+    );
+
+    const TeaRecommendation = () => {
+        const [step, setStep] = useState(0);
+        const [answers, setAnswers] = useState({
+            concern: '',
+            timing: '',
+            flavor: '',
+            desire: ''
+        });
+        const [showAdmin, setShowAdmin] = useState(false);
+        const [isAuthenticated, setIsAuthenticated] = useState(false);
+        const [passwordInput, setPasswordInput] = useState('');
+        const [passwordError, setPasswordError] = useState('');
+
+        const ADMIN_PASSWORD = '2512diag_yrs';
+
+        useEffect(() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const adminParam = urlParams.get('admin');
+            
+            if (adminParam === 'true') {
+                setShowAdmin(true);
+            }
+            
+            const handleKeyPress = (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                    e.preventDefault();
+                    console.log('管理画面モードを有効化（キーボードショートカット）');
+                    setShowAdmin(true);
+                }
+            };
+            
+            window.addEventListener('keydown', handleKeyPress);
+            
+            return () => {
+                window.removeEventListener('keydown', handleKeyPress);
+            };
+        }, []);
+
+        const handlePasswordSubmit = () => {
+            if (passwordInput === ADMIN_PASSWORD) {
+                setIsAuthenticated(true);
+                setPasswordError('');
+            } else {
+                setPasswordError('パスワードが正しくありません');
+                setPasswordInput('');
+            }
+        };
+
+        const handlePasswordKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handlePasswordSubmit();
+            }
+        };
+
+        const questions = [
+            {
+                id: 'concern',
+                title: 'いま気になることは？',
+                subtitle: '現在の状態や気になることを教えてください',
+                options: [
+                    { value: 'circulation', label: '温まりたい・巡りをよくしたい', emoji: '🔥', result: 1 },
+                    { value: 'snack', label: '甘いものがほしい・間食が増えがち', emoji: '🍫', result: 2 },
+                    { value: 'sleep', label: '眠りの浅さ・緊張・休まらない', emoji: '😴', result: 3 },
+                    { value: 'tired', label: 'だるさ・疲れ・気分の切り替えがしたい', emoji: '⚡', result: 4 }
+                ]
+            },
+            {
+                id: 'timing',
+                title: '飲みたいタイミングに近いのは？',
+                subtitle: 'いつ飲むことが多いですか',
+                options: [
+                    { value: 'morning', label: '朝〜日中', emoji: '☀️', result: 4 },
+                    { value: 'snack', label: '食後、おやつの代わり', emoji: '🍪', result: 2 },
+                    { value: 'night', label: '夜のリラックス', emoji: '🌙', result: 3 },
+                    { value: 'anytime', label: 'いつでも飲みやすいもの', emoji: '🕐', result: 1 }
+                ]
+            },
+            {
+                id: 'flavor',
+                title: '好みの風味',
+                subtitle: 'どんな味わいが好きですか',
+                options: [
+                    { value: 'refreshing', label: '香ばしい・すっきり', emoji: '🌿', result: 1 },
+                    { value: 'rich', label: '濃厚・コクのある', emoji: '🍂', result: 2 },
+                    { value: 'gentle', label: 'やさしい・落ち着く香り', emoji: '🌸', result: 3 },
+                    { value: 'fruity', label: 'フルーティー・爽やか', emoji: '🍊', result: 4 }
+                ]
+            },
+            {
+                id: 'desire',
+                title: 'どちらかというと、いま欲しいのは？',
+                subtitle: '期待する効果を教えてください',
+                options: [
+                    { value: 'warmth', label: '体を整える温活・巡りケア', emoji: '♨️', result: 1 },
+                    { value: 'satisfy', label: 'おやつ代わりになる満足感', emoji: '😋', result: 2 },
+                    { value: 'rest', label: '心の休息・睡眠のサポート', emoji: '🧘', result: 3 },
+                    { value: 'energy', label: '元気・リフレッシュ感', emoji: '✨', result: 4 }
+                ]
+            }
+        ];
+
+        const results = {
+            1: {
+                name: 'デトックスフロー',
+                subtitle: '冷え・巡り系',
+                blend: ['よもぎ', 'ネトル', 'フェンネル'],
+                description: '体を芯から温め、血の巡りを整える温活ブレンド。よもぎの温め効果とネトルの栄養、フェンネルの巡り改善が組み合わさり、体の内側から整えます。',
+                benefits: ['血行促進', '冷え性改善', 'デトックス効果', '体質改善'],
+                bestFor: '冷えが気になる方、巡りを良くしたい方'
+            },
+            2: {
+                name: '食べられる黒豆カカオ',
+                subtitle: '食べられるお茶',
+                blend: ['黒豆', 'カカオニブ'],
+                description: '香ばしい黒豆とカカオニブの濃厚な味わい。そのまま食べることもできる満足感のあるブレンド。おやつの代わりにぴったりで、罪悪感なく楽しめます。',
+                benefits: ['満足感', '栄養補給', 'ポリフェノール豊富', '食物繊維'],
+                bestFor: '間食を控えたい方、おやつ代わりを探している方'
+            },
+            3: {
+                name: '睡眠＆癒し',
+                subtitle: 'みかん皮×カモミール',
+                blend: ['みかんの皮', 'カモミール', 'レモンバーム', 'ハトムギ'],
+                description: 'みかんの皮の優しい香りとカモミールの癒し効果が心を落ち着かせます。レモンバームとハトムギが加わり、深いリラックスと良質な睡眠をサポートします。',
+                benefits: ['睡眠の質向上', '深いリラックス', '緊張緩和', '心の安定'],
+                bestFor: '眠りが浅い方、緊張しやすい方、心を休めたい方'
+            },
+            4: {
+                name: '午後のリフレッシュ',
+                subtitle: '緑茶×ハイビスカス',
+                blend: ['緑茶', 'カモミール', 'ハイビスカス'],
+                description: '緑茶の爽やかさとハイビスカスの華やかな酸味が気分をリフレッシュ。カモミールが優しく調和し、疲れた心身に活力を与えます。',
+                benefits: ['リフレッシュ効果', '美容サポート', 'ビタミンC補給', '気分転換'],
+                bestFor: 'だるさを感じる方、気分を切り替えたい方、美容を意識する方'
+            }
+        };
+
+        const handleAnswer = async (questionId, value, resultValue) => {
+            const newAnswers = { ...answers, [questionId]: value };
+            setAnswers(newAnswers);
+
+            if (step < 3) {
+                setTimeout(() => setStep(step + 1), 300);
+            } else {
+                const scores = { 1: 0, 2: 0, 3: 0, 4: 0 };
+                
+                questions.forEach(q => {
+                    const answer = q.id === questionId ? value : newAnswers[q.id];
+                    const option = q.options.find(opt => opt.value === answer);
+                    if (option) {
+                        scores[option.result]++;
+                    }
+                });
+
+                const maxScore = Math.max(...Object.values(scores));
+                const resultId = parseInt(Object.keys(scores).find(key => scores[key] === maxScore));
+
+                setTimeout(() => setStep(4), 300);
+
+                saveResponse(newAnswers, resultId).catch(err => {
+                    console.log('バックグラウンドデータ保存:', err.message || err);
+                });
+            }
+        };
+
+        const saveResponse = async (answersData, resultId) => {
+            try {
+                // LocalStorageを使用（GitHub Pagesでも動作）
+                let stats = {
+                    total: 0,
+                    concernData: { circulation: 0, snack: 0, sleep: 0, tired: 0 },
+                    timingData: { morning: 0, snack: 0, night: 0, anytime: 0 },
+                    flavorData: { refreshing: 0, rich: 0, gentle: 0, fruity: 0 },
+                    desireData: { warmth: 0, satisfy: 0, rest: 0, energy: 0 },
+                    resultData: { '1': 0, '2': 0, '3': 0, '4': 0 }
+                };
+                
+                const existingData = localStorage.getItem('yuras_analytics_data');
+                if (existingData) {
+                    const loadedData = JSON.parse(existingData);
+                    stats = {
+                        total: loadedData.total || 0,
+                        concernData: loadedData.concernData || stats.concernData,
+                        timingData: loadedData.timingData || stats.timingData,
+                        flavorData: loadedData.flavorData || stats.flavorData,
+                        desireData: loadedData.desireData || stats.desireData,
+                        resultData: loadedData.resultData || stats.resultData
+                    };
+                }
+                
+                stats.total += 1;
+                stats.concernData[answersData.concern] = (stats.concernData[answersData.concern] || 0) + 1;
+                stats.timingData[answersData.timing] = (stats.timingData[answersData.timing] || 0) + 1;
+                stats.flavorData[answersData.flavor] = (stats.flavorData[answersData.flavor] || 0) + 1;
+                stats.desireData[answersData.desire] = (stats.desireData[answersData.desire] || 0) + 1;
+                
+                const resultKey = String(resultId);
+                stats.resultData[resultKey] = (stats.resultData[resultKey] || 0) + 1;
+                
+                localStorage.setItem('yuras_analytics_data', JSON.stringify(stats));
+                
+            } catch (error) {
+                console.log('データ保存失敗（無視）:', error);
+            }
+        };
+
+        const getRecommendation = () => {
+            const scores = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            
+            questions.forEach(q => {
+                const answer = answers[q.id];
+                const option = q.options.find(opt => opt.value === answer);
+                if (option) {
+                    scores[option.result]++;
+                }
+            });
+
+            const maxScore = Math.max(...Object.values(scores));
+            const resultId = parseInt(Object.keys(scores).find(key => scores[key] === maxScore));
+            
+            return results[resultId];
+        };
+
+        const reset = () => {
+            setStep(0);
+            setAnswers({ concern: '', timing: '', flavor: '', desire: '' });
+        };
+
+        const exportToCSV = () => {
+            try {
+                const existingData = localStorage.getItem('yuras_analytics_data');
+                if (!existingData) {
+                    alert('まだデータがありません');
+                    return;
+                }
+                
+                const stats = JSON.parse(existingData);
+                const total = stats.total || 0;
+                
+                let csvContent = '\uFEFF';
+                csvContent += 'YURAS日本ハーブティー診断 集計データ\n\n';
+                csvContent += `総回答数,${total}\n`;
+                csvContent += `エクスポート日時,${new Date().toLocaleString('ja-JP')}\n\n`;
+                
+                csvContent += '【いま気になることは？】\n';
+                csvContent += '選択肢,回答数,割合\n';
+                const concernLabels = {
+                    circulation: '温まりたい・巡りをよくしたい',
+                    snack: '甘いものがほしい・間食が増えがち',
+                    sleep: '眠りの浅さ・緊張・休まらない',
+                    tired: 'だるさ・疲れ・気分の切り替えがしたい'
+                };
+                Object.entries(concernLabels).forEach(([key, label]) => {
+                    const count = stats.concernData[key] || 0;
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                    csvContent += `${label},${count},${percentage}%\n`;
+                });
+                
+                csvContent += '\n【飲みたいタイミング】\n';
+                csvContent += '選択肢,回答数,割合\n';
+                const timingLabels = {
+                    morning: '朝〜日中',
+                    snack: '食後、おやつの代わり',
+                    night: '夜のリラックス',
+                    anytime: 'いつでも飲みやすいもの'
+                };
+                Object.entries(timingLabels).forEach(([key, label]) => {
+                    const count = stats.timingData[key] || 0;
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                    csvContent += `${label},${count},${percentage}%\n`;
+                });
+                
+                csvContent += '\n【好みの風味】\n';
+                csvContent += '選択肢,回答数,割合\n';
+                const flavorLabels = {
+                    refreshing: '香ばしい・すっきり',
+                    rich: '濃厚・コクのある',
+                    gentle: 'やさしい・落ち着く香り',
+                    fruity: 'フルーティー・爽やか'
+                };
+                Object.entries(flavorLabels).forEach(([key, label]) => {
+                    const count = stats.flavorData[key] || 0;
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                    csvContent += `${label},${count},${percentage}%\n`;
+                });
+                
+                csvContent += '\n【いま欲しいもの】\n';
+                csvContent += '選択肢,回答数,割合\n';
+                const desireLabels = {
+                    warmth: '体を整える温活・巡りケア',
+                    satisfy: 'おやつ代わりになる満足感',
+                    rest: '心の休息・睡眠のサポート',
+                    energy: '元気・リフレッシュ感'
+                };
+                Object.entries(desireLabels).forEach(([key, label]) => {
+                    const count = stats.desireData[key] || 0;
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                    csvContent += `${label},${count},${percentage}%\n`;
+                });
+                
+                csvContent += '\n【診断結果（提案されたブレンド）】\n';
+                csvContent += 'ブレンド名,提案回数,割合\n';
+                const resultLabels = {
+                    '1': 'デトックスフロー',
+                    '2': '食べられる黒豆カカオ',
+                    '3': '睡眠＆癒し',
+                    '4': '午後のリフレッシュ'
+                };
+                Object.entries(resultLabels).forEach(([key, label]) => {
+                    const count = (stats.resultData && stats.resultData[key]) || 0;
+                    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                    csvContent += `${label},${count},${percentage}%\n`;
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `yuras_tea_diagnosis_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (error) {
+                console.error('CSVエクスポートエラー:', error);
+                alert('エクスポートに失敗しました');
+            }
+        };
+
+        const AdminDashboard = () => {
+            const [stats, setStats] = useState(null);
+            const [loading, setLoading] = useState(true);
+            
+            useEffect(() => {
+                loadStats();
+            }, []);
+            
+            const loadStats = () => {
+                try {
+                    let stats = {
+                        total: 0,
+                        concernData: { circulation: 0, snack: 0, sleep: 0, tired: 0 },
+                        timingData: { morning: 0, snack: 0, night: 0, anytime: 0 },
+                        flavorData: { refreshing: 0, rich: 0, gentle: 0, fruity: 0 },
+                        desireData: { warmth: 0, satisfy: 0, rest: 0, energy: 0 },
+                        resultData: { '1': 0, '2': 0, '3': 0, '4': 0 }
+                    };
+                    
+                    const existingData = localStorage.getItem('yuras_analytics_data');
+                    if (existingData) {
+                        const loadedStats = JSON.parse(existingData);
+                        stats = {
+                            ...stats,
+                            ...loadedStats,
+                            concernData: { ...stats.concernData, ...(loadedStats.concernData || {}) },
+                            timingData: { ...stats.timingData, ...(loadedStats.timingData || {}) },
+                            flavorData: { ...stats.flavorData, ...(loadedStats.flavorData || {}) },
+                            desireData: { ...stats.desireData, ...(loadedStats.desireData || {}) },
+                            resultData: { ...stats.resultData, ...(loadedStats.resultData || {}) }
+                        };
+                    }
+                    
+                    setStats(stats);
+                    setLoading(false);
+                } catch (error) {
+                    console.error('統計読み込みエラー:', error);
+                    setStats({
+                        total: 0,
+                        concernData: { circulation: 0, snack: 0, sleep: 0, tired: 0 },
+                        timingData: { morning: 0, snack: 0, night: 0, anytime: 0 },
+                        flavorData: { refreshing: 0, rich: 0, gentle: 0, fruity: 0 },
+                        desireData: { warmth: 0, satisfy: 0, rest: 0, energy: 0 },
+                        resultData: { '1': 0, '2': 0, '3': 0, '4': 0 }
+                    });
+                    setLoading(false);
+                }
+            };
+            
+            if (loading) {
+                return (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#2e4f82' }}></div>
+                        <p className="mt-4 text-gray-600">データを読み込み中...</p>
+                    </div>
+                );
+            }
+            
+            if (!stats || stats.total === 0) {
+                return (
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
+                            <p className="text-gray-600 mb-4">データがまだありません</p>
+                            <p className="text-sm text-gray-500">診断の回答が送信されると、ここに統計が表示されます</p>
+                        </div>
+                        <button
+                            onClick={() => setShowAdmin(false)}
+                            className="w-full py-4 rounded-xl border-2 font-semibold text-lg hover:bg-gray-50 transition-colors"
+                            style={{ borderColor: '#2e4f82', color: '#2e4f82' }}
+                        >
+                            診断に戻る
+                        </button>
+                    </div>
+                );
+            }
+            
+            const resultLabels = {
+                '1': 'デトックスフロー',
+                '2': '食べられる黒豆カカオ',
+                '3': '睡眠＆癒し',
+                '4': '午後のリフレッシュ'
+            };
+            
+            return (
+                <div className="space-y-6">
+                    <div className="bg-white rounded-2xl p-6 shadow-lg">
+                        <h3 className="text-2xl font-bold mb-2" style={{ color: '#2e4f82' }}>
+                            総回答数
+                        </h3>
+                        <p className="text-5xl font-bold" style={{ color: '#d7a62b' }}>
+                            {stats.total}
+                        </p>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl p-6 shadow-lg">
+                        <h3 className="text-xl font-bold mb-4" style={{ color: '#2e4f82' }}>
+                            診断結果の分布
+                        </h3>
+                        <div className="space-y-3">
+                            {Object.entries(resultLabels).map(([id, label]) => {
+                                const count = (stats.resultData && stats.resultData[id]) || 0;
+                                return (
+                                    <div key={id}>
+                                        <div className="flex justify-between mb-1">
+                                            <span className="text-gray-700">{label}</span>
+                                            <span className="font-semibold">{count}回</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div 
+                                                className="h-2 rounded-full transition-all"
+                                                style={{ 
+                                                    width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%`,
+                                                    backgroundColor: '#2e4f82'
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    
+                    <button
+                        onClick={exportToCSV}
+                        className="w-full py-4 rounded-xl text-white font-semibold text-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                        style={{ backgroundColor: '#2e4f82' }}
+                    >
+                        <Download className="w-5 h-5" />
+                        詳細データをCSVでダウンロード
+                    </button>
+                    
+                    <button
+                        onClick={() => setShowAdmin(false)}
+                        className="w-full py-4 rounded-xl border-2 font-semibold text-lg hover:bg-gray-50 transition-colors"
+                        style={{ borderColor: '#2e4f82', color: '#2e4f82' }}
+                    >
+                        診断に戻る
+                    </button>
+                </div>
+            );
+        };
+
+        const currentQuestion = step < 4 ? questions[step] : null;
+        const recommendation = step === 4 ? getRecommendation() : null;
+
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to
+              
+              <form onSubmit={(e) => e.preventDefault()}>
                                         <input
                                             type="password"
                                             value={passwordInput}
